@@ -26,6 +26,7 @@ HOME_DIR=$(echo $HOME)
 # Specify the path to your docker-compose.yml file
 COMPOSE_FILE="$CURRENT_DIR/docker-compose.yml"
 
+: <<COMMENT
 # Create a backup of the original docker-compose.yml file
 echo "Creating a backup of docker-compose.yml..."
 cp "$COMPOSE_FILE" "$COMPOSE_FILE.backup"
@@ -38,6 +39,7 @@ echo "Replaced '~' with '$HOME_DIR' in $COMPOSE_FILE."
 
 # Notify about automatic backup by sed
 echo "Automatic backup by sed: $COMPOSE_FILE.bak."
+COMMENT
 
 # ----------------------------------------------------------
 echo "Script execution completed successfully!"
