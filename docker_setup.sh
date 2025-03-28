@@ -7,7 +7,7 @@ echo "The current working directory is: $CURRENT_DIR"
 
 # Wget data
 mkdir -p $CURRENT_DIR/osm_data
-wget https://download.geofabrik.de/africa/tunisia-latest.osm.pbf osm_data
+wget -P $CURRENT_DIR/osm_data https://download.geofabrik.de/africa/tunisia-latest.osm.pbf
 
 # Create folders to store volumes
 echo "Creating directories for Docker volumes..."
