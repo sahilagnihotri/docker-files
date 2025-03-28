@@ -1,0 +1,94 @@
+# -------------------------------------------------------------------------------
+# Docker compose file for my mac 
+# Author : Sahil Agnihotri
+# -------------------------------------------------------------------------------
+# docker-compose down   
+# docker-compose up -d
+# docker-compose down && docker-compose up -d 
+# -------------------------------------------------------------------------------
+# Usage : 
+# manual way ...
+# docker volume create osm_data 
+# docker run -v ~/docker-files/osm_data/norway-latest.osm.pbf:/data/region.osm.pbf  -v osm_data:/data/database/  overv/openstreetmap-tile-server  import 
+# -------------------------------------------------------------------------------
+# Run all except openstreetmap-import
+# docker-compose down && docker-compose up -d
+# Run openstreetmap-import service when needed
+# docker-compose --profile import-only up openstreetmap-import
+# -------------------------------------------------------------------------------
+
+#version: '3.8'  # Specify the Compose file format version
+services:
+  portainer:
+    image: portainer/portainer
+    container_name: portainer
+    ports:
+      - "9000:9000"
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data  # Add this line to persist Portainer data
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ~/docker-files/volumes/prometheus_data:/prometheus  # Add this line to persist Prometheus data
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: always
+
+  webserver:
+    image: nginx:latest
+    container_name: webserver
+    ports:
+      - "8080:80"
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./static:/usr/share/nginx/html
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"  # Grafana web interface runs on port 3000
+    restart: always
+    volumes:
+      - ~/docker-files/volumes/grafana_data:/var/lib/grafana  # Persist Grafana data (optional)
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+
+  openstreetmap-import:
+    image: overv/openstreetmap-tile-server
+    container_name: osm-import
+    profiles:
+      - import-only  # Profile for import process
+    volumes:
+      # Mount the .osm.pbf file from your host system
+      - ~/docker-files/osm_data/tunisia-latest.osm.pbf:/data/region.osm.pbf
+      # Reuse the named volume for the database
+      - ~/docker-files/volumes/osm_data:/data/database
+    environment:
+      - PBF_PATH=/data/region.osm.pbf
+#      - UPDATES=enabled
+#      - THREADS=8
+    command: import  # Runs the import process
+
+  openstreetmap-run:
+    image: overv/openstreetmap-tile-server
+    container_name: osm-run
+    ports:
+      - "8081:80"
+    volumes:
+      - ~/docker-files/volumes/osm_data:/data/database
+    command: run  # Serves tiles
+
+volumes:
+  ~/docker-files/volumes/portainer_data:  # Named volume for Portainer data
+  ~/docker-files/volumes/prometheus_data:   # Named volume for Prometheus data
+  ~/docker-files/volumes/grafana_data:  # Named volume for Grafana data
+  ~/docker-files/volumes/osm_data:  # Named volume for OpenStreetMap database
+#   external: true # Set it true in case you create volume in console and want to use it 
