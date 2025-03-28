@@ -47,7 +47,7 @@ services:
     restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./static:/usr/share/nginx/html
+      - ./volumes/nginx/static:/usr/share/nginx/html  # Updated path
 
   grafana:
     image: grafana/grafana
